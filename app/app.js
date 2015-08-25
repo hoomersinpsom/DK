@@ -13,8 +13,11 @@ var mainState = {
 
   },
   create: function(){
-
+    this.shooted = false;
+    this.playerActiveBody = false;
+    game.world.height = 480;
     game.stage.backgroundColor = '#2d2d2d';
+    game.world.setBounds(0,0,game.world.width,game.world.height + 20);
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.P2JS);
     // The player and its settings
@@ -23,37 +26,55 @@ var mainState = {
     game.physics.p2.restitution = 0.8;
     game.physics.p2.friction = 0.1;
 
-    this.player2 = game.add.sprite((game.world.width / 2 ), 100, this.barrel);
+    this.players = game.add.group();
+    this.players.createMultiple(8, this.barrel);
 
-    this.player = game.add.sprite((game.world.width / 2 ), game.world.height - 100, this.barrel);
+    this.players.forEach(function(player) {
+        player.anchor.setTo(0.5, 0.5);
+    }, this);
+    //game.physics.p2.enable(this.players);
+
+    this.playerActive = this.players.getFirstDead();
+    //this.playerActive.body.setZeroDamping();
+    this.playerActive.reset(game.world.width / 2, game.world.height - 100 );
+    //game.physics.p2.removeBody(this.playerActive);
+    //this.player = game.add.sprite((game.world.width / 2 ), game.world.height - 100, this.barrel);
     // BALL //
-    this.ball = game.add.sprite(this.player.position.x, this.player.position.y, this.ballShape);
+    this.ball = game.add.sprite(this.playerActive.position.x, this.playerActive.position.y, this.ballShape);
 
 
-    this.player.anchor.setTo(0.5, 0.5);
-    this.player2.anchor.setTo(0.5, 0.5);
+
 
     //  We need to enable physics on the this.player
     this.ball.anchor.setTo(0.5, 0.5);
 
 
 
+
     //  We need to enable physics on the this.player
 
-    this.tweens.playerRotation = this.add.tween(this.player)
-      .to({angle: 359}, 3000, null, true, 0, Infinity);
-    this.tweens.player2Rotation = this.add.tween(this.player2)
-      .to({angle: 359}, 2000, null, true, 0, Infinity);
+    // this.tweens.playerRotation = this.add.tween(this.player)
+    //   .to({angle: 359}, 3000, null, true, 0, Infinity);
+    // this.tweens.player2Rotation = this.add.tween(this.player2)
+    //   .to({angle: 359}, 2000, null, true, 0, Infinity);
 
     //  this.Player physics properties. Give the little guy a slight bounce
     game.input.onDown.add(this.boom, this);
   },
   boom: function(){
+    if (this.shooted) return false;
+
     console.log("boom")
     game.physics.p2.enable(this.ball);
-    this.tweens.playerRotation.stop()
+    game.time.events.add(Phaser.Timer.QUARTER, function(){
+      game.physics.p2.enable(this.playerActive);
+      this.playerActiveBody = true;
+    }, this).autoDestroy = true;
 
-    this.ball.body.rotation = this.player.rotation + game.math.degToRad(-180);
+    this.ball.body.setCircle(10);
+    //this.tweens.playerRotation.stop()
+
+    this.ball.body.rotation = this.playerActive.rotation + game.math.degToRad(-180);
 
     var magnitude = 600;
     var angle = this.ball.body.rotation + Math.PI / 2;
@@ -61,13 +82,21 @@ var mainState = {
     this.ball.body.velocity.x = magnitude * Math.cos(angle);
     this.ball.body.velocity.y = magnitude * Math.sin(angle);
     //this.ball.body.velocity.y = -300
+    this.shooted = true;
   },
   update: function(){
+    if(this.playerActiveBody){
+      this.playerActive.body.kinematic = true;
+      this.playerActive.body.setZeroVelocity();
+    }
     //sthis.ball.body.velocity.y = 100
+    //this.playerActive.body.setZeroVelocity();
+    if(this.ball.y > game.world.height - 20) return this.die();
   },
   render: function(){
     //game.debug.spriteInfo(this.ball, 32, 32);
   },
+
   /*******************
   //     SHAPES     //
   *******************/
@@ -101,6 +130,14 @@ var mainState = {
     this.ballShape.ctx.fillStyle = 'tomato';
     this.ballShape.ctx.fill();
 
+  },
+
+  /*******************
+  //      DIE       //
+  *******************/
+  die: function(){
+    console.log('Die :(')
+    game.state.restart('main');
   }
 }
 

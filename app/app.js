@@ -10,19 +10,23 @@ var mainState = {
   preload: function() {
       // add the shapes of the squares
       this.shapes();
+      game.load.image('barrel', 'assets/barrelshape.png');
+      game.load.image('ball', 'assets/ballshape.png');
+      game.load.image('bg', 'assets/skybg.gif');
 
   },
   create: function(){
     this.shooted = false;
     this.playerActiveBody = false;
-    game.stage.backgroundColor = '#2d2d2d';
+    this.skybg = game.add.tileSprite(0, 0, 320, 480, 'bg');
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.checkCollision.down = false;
     game.physics.arcade.checkCollision.up = false;
 
 
+    this.ball = game.add.sprite(this.game.world.centerX, game.world.height - 100, 'ball');
     this.players = game.add.group();
-    this.players.createMultiple(8, this.barrel);
+    this.players.createMultiple(8, 'barrel');
     game.physics.arcade.enable(this.players);
     game.physics.arcade.gravity.y = 600;
     this.players.forEach(function(player) {
@@ -39,14 +43,13 @@ var mainState = {
     //game.physics.p2.removeBody(this.playerActive);
     //this.player = game.add.sprite((game.world.width / 2 ), game.world.height - 100, this.barrel);
     // BALL //
-    this.ball = game.add.sprite(this.playerActive.position.x, this.playerActive.position.y, this.ballShape);
 
     this.ball.checkWorldBounds = true;
 
 
     this.ball.anchor.setTo(0.5, 0.5);
     this.ball.physicsBodyType = Phaser.Physics.ARCADE;
-    this.playerActive.rotation = game.math.degToRad(2)
+    //this.playerActive.rotation = game.math.degToRad(2)
 
     this.ball.events.onOutOfBounds.add(this.die, this);
 
@@ -72,7 +75,6 @@ var mainState = {
     this.ball.body.bounce.set(0.4);
 
     game.time.events.add(Phaser.Timer.QUARTER - 100, function(){
-      
       this.playerActiveBody = true;
       this.playerActive = null;
     }, this).autoDestroy = true;
@@ -93,15 +95,17 @@ var mainState = {
 
 
   update: function(){
+    this.skybg.tilePosition.x += 0.05;
     if(this.playerActiveBody){
-      //this.playerActive.body.kinematic = true;
-      //this.playerActive.body.setZeroVelocity();
       game.physics.arcade.overlap(this.ball, this.players, this.collisionHandler, null, this);
     }
     if(this.touched){
       this.ball.position.x = this.playerActive.position.x;
+      this.ball.position.y = this.playerActive.position.y;
     }
-    //if(this.ball.y > game.world.height - 20) return this.die();
+    if(this.rotateActive){
+      this.rotatePlayer(this.lastPlayer)
+    }
   },
 
   collisionHandler: function(ball, player) {
@@ -112,10 +116,10 @@ var mainState = {
       ball.body.velocity.y = 0
       this.shooted = false
       //console.log(ball)
-      this.ballMagnet = this.add.tween(ball).to({x: this.playerActive.position.x, y:this.playerActive.position.y}, 50, null, true, 0, 0);
-      this.ballMagnet.onComplete.add(function(data){
+      //this.ballMagnet = this.add.tween(ball).to({x: this.playerActive.position.x, y:this.playerActive.position.y}, 50, null, true, 0, 0);
+      //this.ballMagnet.onComplete.add(function(data){
         this.touched = true;
-      }, this)
+      //}, this)
   },
   render: function(){
     //game.debug.spriteInfo(this.ball, 32, 32);
@@ -125,7 +129,6 @@ var mainState = {
   /*******************
   //     SHAPES     //
   *******************/
-  // formas geometricas dos quadrados e sprites em geral
   shapes:function(){
 
     this.barrel = game.add.bitmapData(40,50);
@@ -154,7 +157,6 @@ var mainState = {
     this.ballShape.ctx.rect(7,5,3,3);
     this.ballShape.ctx.fillStyle = 'tomato';
     this.ballShape.ctx.fill();
-
   },
 
   /*******************
@@ -175,7 +177,15 @@ var mainState = {
       player.reset(50, 100 );
       player.rotation = game.math.degToRad(-180)
       this.add.tween(player).to({x: game.world.width - 50}, 2000, Phaser.Easing.Cubic.InOut, true, 0, Infinity, true);
+      this.rotateActive = true
+      this.lastPlayer = player
     }
+  },
+  rotatePlayer: function(player){
+    game.physics.arcade.overlap(this.ball, player, function(ball, player){
+      //player.body.rotation = game.math.degToRad(-180);
+      this.add.tween(player).to({rotation: game.math.degToRad(-1)}, 80, Phaser.Easing.Linear.InOut, true, 1, 1, false);
+    }, null, this);
   }
 }
 

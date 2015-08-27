@@ -16,7 +16,7 @@ var mainState = {
 
   },
   create: function(){
-    this.shooted = false;
+    this.blockFire = false;
     this.playerActiveBody = false;
     this.skybg = game.add.tileSprite(0, 0, 320, 480, 'bg');
     game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -34,6 +34,7 @@ var mainState = {
         player.body.allowGravity = false;
         player.enableBody = true;
         player.body.setSize(30, 35, 0, 0);
+        player.checkWorldBounds = true;
     }, this);
     //game.physics.p2.enable(this.players);
 
@@ -62,10 +63,18 @@ var mainState = {
 
     //  this.Player physics properties. Give the little guy a slight bounce
     game.input.onDown.add(this.boom, this);
+
+    // Score
+    this.score = 0
+    this.labelScore = game.add.text(20, 20, 0, { font: "16px 'Press Start 2P'"});
+    this.labelScore.stroke = '#000000';
+    this.labelScore.strokeThickness = 4;
+    this.labelScore.fill = '#ffffff';
+    // Carrega primeiro nivel
     this.level(1);
   },
   boom: function(){
-    if (this.shooted) return false;
+    if (this.blockFire) return false;
 
     console.log("boom")
     this.touched = false;
@@ -90,7 +99,7 @@ var mainState = {
     this.ball.body.velocity.x = magnitude * Math.cos(angle);
     this.ball.body.velocity.y = magnitude * Math.sin(angle);
     //this.ball.body.velocity.y = -300
-    this.shooted = true;
+    this.blockFire = true;
   },
 
 
@@ -106,6 +115,7 @@ var mainState = {
     if(this.rotateActive){
       this.rotatePlayer(this.lastPlayer)
     }
+    this.checkLevel(this.lastPlayer)
   },
 
   collisionHandler: function(ball, player) {
@@ -114,7 +124,7 @@ var mainState = {
       ball.body.allowGravity = false;
       ball.body.velocity.x = 0
       ball.body.velocity.y = 0
-      this.shooted = false
+      this.blockFire = false
       //console.log(ball)
       //this.ballMagnet = this.add.tween(ball).to({x: this.playerActive.position.x, y:this.playerActive.position.y}, 50, null, true, 0, 0);
       //this.ballMagnet.onComplete.add(function(data){
@@ -172,6 +182,7 @@ var mainState = {
   *******************/
   level: function(num){
     var player;
+    this.lastPlayer = null
     if(num = 1){
       player = this.players.getFirstDead();
       player.reset(50, 100 );
@@ -184,8 +195,39 @@ var mainState = {
   rotatePlayer: function(player){
     game.physics.arcade.overlap(this.ball, player, function(ball, player){
       //player.body.rotation = game.math.degToRad(-180);
-      this.add.tween(player).to({rotation: game.math.degToRad(-1)}, 80, Phaser.Easing.Linear.InOut, true, 1, 1, false);
+      this.add.tween(player).to({rotation: game.math.degToRad(1)}, 80, Phaser.Easing.Linear.InOut, true, 1, 1, false);
     }, null, this);
+  },
+  checkLevel: function(player){
+    game.physics.arcade.overlap(this.ball, player, function(ball, player){
+      this.loadNext();
+      this.blockFire = true;
+      _this = this;
+      this.players.forEachAlive(function(_player){
+        game.add.tween(_player).to({y: _player.position.y + 280}, 300, Phaser.Easing.Linear.InOut, true).onComplete.add(function(data){
+          this.cleanStage()
+          this.blockFire = false;
+        }, _this)
+      })
+      this.score++
+      this.labelScore.text = this.score;
+    }, null, this);
+  },
+  loadNext: function(){
+    var nextPlayer, rndX;
+    nextPlayer = this.players.getFirstDead();
+    rndX = game.rnd.between(50, game.world.width - 50)
+    nextPlayer.reset(50, -180);
+    this.add.tween(nextPlayer).to({x: game.world.width - 50}, 2000 - (this.score * 10), Phaser.Easing.Cubic.InOut, true, 0, Infinity, true);
+    this.lastPlayer = nextPlayer
+  },
+  cleanStage: function(){
+    this.players.forEachAlive(function(_player){
+      if(_player.y > game.world.height + _player.height){
+        game.tweens.removeFrom(_player);
+        _player.kill();
+      }
+    })
   }
 }
 

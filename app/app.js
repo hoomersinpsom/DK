@@ -9,16 +9,26 @@ var mainState = {
   },
   preload: function() {
       // add the shapes of the squares
-      this.shapes();
-      game.load.image('barrel', 'assets/barrelshape.png');
-      game.load.image('ball', 'assets/ballshape.png');
-      game.load.image('bg', 'assets/skybg.gif');
+      game.load.image('barrel', 'assets/images/barrelshape.png');
+      game.load.image('ball', 'assets/images/ballshape.png');
+      game.load.image('bg', 'assets/images/skybg.gif');
+
+      // sounds
+      game.load.audio('inBarrel', ['assets/sounds/Go_in_barrel.ogg', 'assets/sounds/Go_in_barrel.mp3']);
+      game.load.audio('blastBarrel', ['assets/sounds/Barrel_blast_barrel.ogg', 'assets/sounds/Barrel_blast_barrel.mp3']);
+      game.load.audio('gameover', ['assets/sounds/game_over.ogg', 'assets/sounds/game_over.mp3'], 0.5);
 
   },
   create: function(){
     this.blockFire = false;
     this.playerActiveBody = false;
     this.skybg = game.add.tileSprite(0, 0, 320, 480, 'bg');
+
+    // Sounds
+    this.blast = game.add.audio('blastBarrel')
+    this.goIn = game.add.audio('inBarrel')
+    this.gameover = game.add.audio('gameover')
+
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.checkCollision.down = false;
     game.physics.arcade.checkCollision.up = false;
@@ -95,7 +105,7 @@ var mainState = {
 
     var magnitude = 600;
     var angle = this.ball.body.rotation + Math.PI / 2;
-
+    this.blast.play();
     this.ball.body.velocity.x = magnitude * Math.cos(angle);
     this.ball.body.velocity.y = magnitude * Math.sin(angle);
     //this.ball.body.velocity.y = -300
@@ -111,6 +121,9 @@ var mainState = {
     if(this.touched){
       this.ball.position.x = this.playerActive.position.x;
       this.ball.position.y = this.playerActive.position.y;
+      this.ball.alpha = 0
+    }else{
+      this.ball.alpha = 1
     }
     if(this.rotateActive){
       this.rotatePlayer(this.lastPlayer)
@@ -124,7 +137,8 @@ var mainState = {
       ball.body.allowGravity = false;
       ball.body.velocity.x = 0
       ball.body.velocity.y = 0
-      this.blockFire = false
+      this.blockFire = false;
+      this.goIn.play();
       //console.log(ball)
       //this.ballMagnet = this.add.tween(ball).to({x: this.playerActive.position.x, y:this.playerActive.position.y}, 50, null, true, 0, 0);
       //this.ballMagnet.onComplete.add(function(data){
@@ -137,44 +151,16 @@ var mainState = {
   },
 
   /*******************
-  //     SHAPES     //
-  *******************/
-  shapes:function(){
-
-    this.barrel = game.add.bitmapData(40,50);
-
-    // draw to the canvas context like normal
-    this.barrel.ctx.beginPath();
-    this.barrel.ctx.rect(0,0,40,50);
-    this.barrel.ctx.fillStyle = '#991111';
-    this.barrel.ctx.fill();
-    this.barrel.ctx.beginPath();
-    this.barrel.ctx.rect(0,0,40,4);
-    this.barrel.ctx.fillStyle = '#119911';
-    this.barrel.ctx.fill();
-
-
-    this.ballShape = game.add.bitmapData(35,35);
-
-    // draw to the canvas context like normal
-
-    this.ballShape.ctx.beginPath();
-    this.ballShape.ctx.arc(17.5, 17.5, 17.5, 0, 2 * Math.PI, false);
-    this.ballShape.ctx.fillStyle = 'green';
-    this.ballShape.ctx.fill();
-    this.ballShape.ctx.stroke();
-    this.ballShape.ctx.beginPath();
-    this.ballShape.ctx.rect(7,5,3,3);
-    this.ballShape.ctx.fillStyle = 'tomato';
-    this.ballShape.ctx.fill();
-  },
-
-  /*******************
   //      DIE       //
   *******************/
   die: function(){
     console.log('Die :(')
-    game.state.restart('main');
+      this.gameover.volume = 0.2
+      this.gameover.play()
+
+    game.time.events.add(Phaser.Timer.SECOND, function(){
+      game.state.start('main');
+    }, this).autoDestroy = true;
   },
 
   /*******************
@@ -215,10 +201,22 @@ var mainState = {
   },
   loadNext: function(){
     var nextPlayer, rndX;
+    var reverse = game.rnd.between(0, 1) ? true : false;
+
+    var time = 2000 - (this.score * 15);
+    if(time < 400) time = 400;
     nextPlayer = this.players.getFirstDead();
-    rndX = game.rnd.between(50, game.world.width - 50)
-    nextPlayer.reset(50, -180);
-    this.add.tween(nextPlayer).to({x: game.world.width - 50}, 2000 - (this.score * 10), Phaser.Easing.Cubic.InOut, true, 0, Infinity, true);
+    rndX = game.rnd.between(50, game.world.width - 50);
+
+    var timeFix = this.setTime(rndX, time);
+    nextPlayer.reset(rndX, -180);
+    nextPlayer.rotation = game.math.degToRad(-180);
+
+    var tweenA = this.add.tween(nextPlayer).to({x: reverse ? 50 : game.world.width - 50}, timeFix, Phaser.Easing.Sinusoidal.Out, false, 0);
+    var tweenB = this.add.tween(nextPlayer).to({x: reverse ? game.world.width - 50 : 50}, time, Phaser.Easing.Sinusoidal.InOut, false, 0, -1, true);
+
+    tweenA.chain(tweenB);
+    tweenA.start();
     this.lastPlayer = nextPlayer
   },
   cleanStage: function(){
@@ -228,9 +226,104 @@ var mainState = {
         _player.kill();
       }
     })
+  },
+  // Altera o tempo do tween para o barril não
+  // desacelar no yoyo
+  setTime: function(rnd, time){
+    var w = game.world.width - 100;
+    var perc = Math.round(((rnd - 50) / w) * 100);
+    var result = (time / 100 ) * perc;
+    return result;
   }
 }
+// ************************ //
+//       Tela inicial
+// ************************ //
+var startState = {
+  preload: function(){
+    // add the shapes of the squares
+    game.load.image('logo', 'assets/images/logo.png');
+    game.load.image('bg', 'assets/images/skybg.gif');
+    game.load.image('startBtn', 'assets/images/start-button.png');
+    game.load.image('ball', 'assets/images/ballshape.png');
 
-// Launcher do jogoZ
+    // sounds
+    game.load.audio('theme', ['assets/sounds/open_theme.ogg', 'assets/sounds/open_theme.mp3'],1,true);
+  },
+  create: function(){
+    this.skybg = game.add.tileSprite(0, 0, 320, 480, 'bg');
+    this.theme = game.add.audio('theme')
+    this.theme.loopFull();
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+    game.physics.arcade.checkCollision.down = false;
+    game.physics.arcade.checkCollision.up = false;
+
+    this.balls = game.add.group();
+    this.balls.createMultiple(4, 'ball');
+    game.physics.arcade.enable(this.balls);
+    game.physics.arcade.gravity.y = 600;
+    this.balls.forEach(function(ball) {
+        ball.anchor.setTo(0.5, 0.5);
+        ball.body.allowGravity = true;
+        ball.enableBody = true;
+        ball.checkWorldBounds = true;
+        ball.body.collideWorldBounds = true;
+        //ball.outOfBoundsKill = true;
+        ball.events.onOutOfBounds.add(this.die, this);
+        ball.body.bounce.x = 0.6
+    }, this);
+
+
+    this.logo = game.add.sprite(this.game.world.centerX + 7, - 140, 'logo');
+    this.logo.anchor.setTo(0.5, 0);
+    this.btn = game.make.sprite(0, 164, 'startBtn')
+    this.btn.anchor.setTo(0.5, 0);
+    this.logo.addChild(this.btn);
+
+    this.tweenA = this.add.tween(this.logo).to({y: 100}, 2000, Phaser.Easing.Bounce.Out, false, 0);
+    this.tweenA.start();
+    var _this = this;
+    this.tweenA.onComplete.add(function(){
+      _this.ballsFire(_this.balls)
+    })
+    //game.physics.enable([this.logo], Phaser.Physics.ARCADE);
+    this.btn.inputEnabled = true;
+    this.btn.events.onInputDown.add(function(){
+      game.state.start('main');
+      this.theme.stop();
+    }, this);
+
+
+  },
+  die: function(ball){
+    //console.log(ball)
+    this.shootBall(ball);
+  },
+  render: function(){
+    game.debug.body(this.logo);
+  },
+  update: function(){
+    this.skybg.tilePosition.x += 0.3;
+    //game.physics.arcade.collide(this.balls);
+  },
+  ballsFire: function(balls){
+    var _this = this;
+    balls.forEach(function(ball){
+        _this.shootBall(ball)
+    })
+  },
+  shootBall: function(ball){
+    ball.reset(game.world.randomX, game.world.height);
+    ball.body.rotation = game.math.degToRad(game.rnd.between(-135, -225));
+
+    var magnitude = game.rnd.between(500, 800);
+    var angle = ball.body.rotation + Math.PI / 2;
+    //this.blast.play();
+    ball.body.velocity.x = magnitude * Math.cos(angle);
+    ball.body.velocity.y = magnitude * Math.sin(angle);
+  }
+}
+// Launcher do jogo
 game.state.add('main', mainState);
-game.state.start('main');
+game.state.add('start', startState);
+game.state.start('start');

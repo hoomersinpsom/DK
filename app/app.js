@@ -8,10 +8,12 @@ var mainState = {
     return JSON.parse(JSON.stringify(obj))
   },
   preload: function() {
-      // add the shapes of the squares
+      // IMAGES //
       game.load.image('barrel', 'assets/images/barrelshape.png');
       game.load.image('ball', 'assets/images/ballshape.png');
       game.load.image('bg', 'assets/images/skybg.gif');
+      game.load.image('gameoverimg', 'assets/images/gameover.png');
+      game.load.image('playagainBtn', 'assets/images/playagain.png');
 
       // sounds
       game.load.audio('inBarrel', ['assets/sounds/Go_in_barrel.ogg', 'assets/sounds/Go_in_barrel.mp3']);
@@ -20,6 +22,9 @@ var mainState = {
 
   },
   create: function(){
+    if(typeof localStorage.barrelScore == "undefined"){
+      localStorage.barrelScore = 0;
+    }
     this.blockFire = false;
     this.playerActiveBody = false;
     this.skybg = game.add.tileSprite(0, 0, 320, 480, 'bg');
@@ -32,7 +37,6 @@ var mainState = {
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.checkCollision.down = false;
     game.physics.arcade.checkCollision.up = false;
-
 
     this.ball = game.add.sprite(this.game.world.centerX, game.world.height - 100, 'ball');
     this.players = game.add.group();
@@ -82,11 +86,33 @@ var mainState = {
     this.labelScore.fill = '#ffffff';
     // Carrega primeiro nivel
     this.level(1);
+
+    this.gameoverState = game.add.sprite(this.game.world.centerX, -180, 'gameoverimg');
+    this.gameoverState.anchor.setTo(0.5, 0.5);
+
+    this.bestScore = game.make.text(0, 30,'HIGH SCORE: 10',{ font: "10px 'Press Start 2P'"});
+    this.bestScore.anchor.setTo(0.5, 0);
+    this.bestScore.stroke = '#000000';
+    this.bestScore.strokeThickness = 2;
+    this.bestScore.fill = '#ffffff';
+
+    this.playAgain = game.make.sprite(0, 80, 'playagainBtn')
+    this.playAgain.anchor.setTo(0.5, 0);
+
+    this.gameoverState.addChild(this.bestScore);
+    this.gameoverState.addChild(this.playAgain);
+
+    this.playAgain.inputEnabled = true;
+    this.playAgain.events.onInputDown.add(function(){
+      game.state.restart('main');
+      //console.log('again')
+    }, this);
+
   },
   boom: function(){
     if (this.blockFire) return false;
 
-    console.log("boom")
+    //console.log("boom")
     this.touched = false;
     game.physics.arcade.enable(this.ball);
       this.ball.body.allowGravity = true;
@@ -154,13 +180,16 @@ var mainState = {
   //      DIE       //
   *******************/
   die: function(){
-    console.log('Die :(')
-      this.gameover.volume = 0.2
-      this.gameover.play()
+    //console.log('Die :(')
+      this.gameover.volume = 0.2;
+      this.gameover.play();
+      this.bestScore.text = 'HIGH SCORE:'+localStorage.barrelScore;
+      this.tweenAgain = this.add.tween(this.gameoverState).to({y: 180}, 750, Phaser.Easing.Back.Out, false, 0);
+      this.tweenAgain.start();
+      var _this = this;
+      this.tweenAgain.onComplete.add(function(){
 
-    game.time.events.add(Phaser.Timer.SECOND, function(){
-      game.state.start('main');
-    }, this).autoDestroy = true;
+      })
   },
 
   /*******************
@@ -195,7 +224,8 @@ var mainState = {
           this.blockFire = false;
         }, _this)
       })
-      this.score++
+      this.score++;
+      this.updateHighScore();
       this.labelScore.text = this.score;
     }, null, this);
   },
@@ -234,6 +264,13 @@ var mainState = {
     var perc = Math.round(((rnd - 50) / w) * 100);
     var result = (time / 100 ) * perc;
     return result;
+  },
+  // Atualiza o high score em local storage
+  updateHighScore: function(){
+    var savedScore = localStorage.barrelScore || 0;
+    if(savedScore < this.score){
+      localStorage.barrelScore = this.score;
+    }
   }
 }
 // ************************ //
@@ -241,19 +278,23 @@ var mainState = {
 // ************************ //
 var startState = {
   preload: function(){
-    // add the shapes of the squares
+    // IMAGES //
+    //> entities
     game.load.image('logo', 'assets/images/logo.png');
     game.load.image('bg', 'assets/images/skybg.gif');
-    game.load.image('startBtn', 'assets/images/start-button.png');
     game.load.image('ball', 'assets/images/ballshape.png');
+    //> buttons
+    game.load.image('startBtn', 'assets/images/start-button.png');
 
-    // sounds
+    // SOUNDS //
     game.load.audio('theme', ['assets/sounds/open_theme.ogg', 'assets/sounds/open_theme.mp3'],1,true);
   },
   create: function(){
+
     this.skybg = game.add.tileSprite(0, 0, 320, 480, 'bg');
     this.theme = game.add.audio('theme')
     this.theme.loopFull();
+    this.theme.volume = 0.5;
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.checkCollision.down = false;
     game.physics.arcade.checkCollision.up = false;
@@ -273,10 +314,17 @@ var startState = {
         ball.body.bounce.x = 0.6
     }, this);
 
+    // High Score
+    if(typeof localStorage.barrelScore != "undefined" ){
+      this.labelScore = game.add.text(20, 20, 'HIGH SCORE:'+localStorage.barrelScore, { font: "11px 'Press Start 2P'"});
+      this.labelScore.stroke = '#000000';
+      this.labelScore.strokeThickness = 4;
+      this.labelScore.fill = '#ffffff';
+    }
 
     this.logo = game.add.sprite(this.game.world.centerX + 7, - 140, 'logo');
     this.logo.anchor.setTo(0.5, 0);
-    this.btn = game.make.sprite(0, 164, 'startBtn')
+    this.btn = game.make.sprite(-7, 164, 'startBtn')
     this.btn.anchor.setTo(0.5, 0);
     this.logo.addChild(this.btn);
 
@@ -323,7 +371,33 @@ var startState = {
     ball.body.velocity.y = magnitude * Math.sin(angle);
   }
 }
+
+
+// ************************ //
+//          boot
+// ************************ //
+var boot = {
+  preload: function(){
+    game.load.image('logo', 'assets/images/boss.png');
+    game.load.audio('audio', ['assets/sounds/boot.ogg', 'assets/sounds/boot.mp3']);
+  },
+  create: function(){
+    game.stage.backgroundColor = "#000000";
+    this.logo = game.add.sprite(this.game.world.centerX, this.game.world.centerY, 'logo');
+    this.logo.anchor.setTo(0.5, 0.5);
+    this.logo.alpha = 0;
+    this.audio = game.add.audio('audio');
+    this.audio.play();
+    this.add.tween(this.logo).to({alpha: 1}, 1500).start().onComplete.add(function(){
+      game.time.events.add(Phaser.Timer.SECOND * 3, function(){
+        game.state.start('start');
+      }, this).autoDestroy = true;
+    })
+
+  }
+}
 // Launcher do jogo
+game.state.add('boot', boot);
 game.state.add('main', mainState);
 game.state.add('start', startState);
-game.state.start('start');
+game.state.start('boot');

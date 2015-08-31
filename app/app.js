@@ -107,7 +107,7 @@ var mainState = {
       game.state.restart('main');
       //console.log('again')
     }, this);
-
+    this.lastPlayerRotaing = false;
   },
   boom: function(){
     if (this.blockFire) return false;
@@ -117,7 +117,7 @@ var mainState = {
     game.physics.arcade.enable(this.ball);
       this.ball.body.allowGravity = true;
     this.ball.body.collideWorldBounds = true;
-    this.ball.body.bounce.set(0.4);
+    this.ball.body.bounce.set(0.6);
 
     game.time.events.add(Phaser.Timer.QUARTER - 100, function(){
       this.playerActiveBody = true;
@@ -129,7 +129,7 @@ var mainState = {
 
     this.ball.body.rotation = this.playerActive.rotation + game.math.degToRad(-180);
 
-    var magnitude = 600;
+    var magnitude = 680;
     var angle = this.ball.body.rotation + Math.PI / 2;
     this.blast.play();
     this.ball.body.velocity.x = magnitude * Math.cos(angle);
@@ -181,6 +181,7 @@ var mainState = {
   *******************/
   die: function(){
     //console.log('Die :(')
+      if(this.ball.position.y < game.world.height - 100) return false;
       this.gameover.volume = 0.2;
       this.gameover.play();
       this.bestScore.text = 'HIGH SCORE:'+localStorage.barrelScore;
@@ -210,7 +211,9 @@ var mainState = {
   rotatePlayer: function(player){
     game.physics.arcade.overlap(this.ball, player, function(ball, player){
       //player.body.rotation = game.math.degToRad(-180);
-      this.add.tween(player).to({rotation: game.math.degToRad(1)}, 80, Phaser.Easing.Linear.InOut, true, 1, 1, false);
+      if(!this.lastPlayerRotaing){
+        this.add.tween(player).to({rotation: game.math.degToRad(1)}, 80, Phaser.Easing.Linear.InOut, true, 1, 1, false);
+      }
     }, null, this);
   },
   checkLevel: function(player){
@@ -232,9 +235,10 @@ var mainState = {
   loadNext: function(){
     var nextPlayer, rndX;
     var reverse = game.rnd.between(0, 1) ? true : false;
+    var isRotating = game.rnd.between(0, 5) == 3 ? true : false;
 
     var time = 2000 - (this.score * 15);
-    if(time < 400) time = 400;
+    if(time < 1000) time = 1000;
     nextPlayer = this.players.getFirstDead();
     rndX = game.rnd.between(50, game.world.width - 50);
 
@@ -244,6 +248,16 @@ var mainState = {
 
     var tweenA = this.add.tween(nextPlayer).to({x: reverse ? 50 : game.world.width - 50}, timeFix, Phaser.Easing.Sinusoidal.Out, false, 0);
     var tweenB = this.add.tween(nextPlayer).to({x: reverse ? game.world.width - 50 : 50}, time, Phaser.Easing.Sinusoidal.InOut, false, 0, -1, true);
+    this.lastPlayerRotaing = false;
+    if(isRotating){
+      this.lastPlayerRotaing = true;
+      var rotateTime = 1500;
+      if(this.score > 30){
+        rotateTime = rotateTime * 20 / this.score;
+        if(rotateTime < 600) rotateTime = 600;
+      }
+      var tweenRotate = this.add.tween(nextPlayer).to({angle: reverse ? '+360' : '-360'}, rotateTime, Phaser.Easing.Linear.None, true, 100, -1);
+    }
 
     tweenA.chain(tweenB);
     tweenA.start();

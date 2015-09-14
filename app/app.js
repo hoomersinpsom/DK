@@ -190,7 +190,8 @@ var mainState = {
       var _this = this;
       this.tweenAgain.onComplete.add(function(){
 
-      })
+      });
+
   },
 
   /*******************
@@ -284,7 +285,28 @@ var mainState = {
     var savedScore = localStorage.barrelScore || 0;
     if(savedScore < this.score){
       localStorage.barrelScore = this.score;
+      this.updateLeaderBoard();
     }
+  },
+
+  updateLeaderBoard: function(){
+    $.get($('body').data('url')+'/api/').success(function(data){
+      console.log(data)
+      var scores = data;
+      var numbers = []
+      $.each(scores, function(index, val){
+        numbers.push(val.score)
+      });
+      var high = Math.min.apply(Math,numbers);
+      if(localStorage.barrelScore > high || numbers.length < 50){
+        $(".leader-form").addClass('show').find("input[name='name']").focus();
+        $('.leader-form p').text('NEW HIGH SCORE! Submit your name to the leader board :]')
+        $('.leader-form form').show();
+      }
+    }).error(function(err){
+      alert('Conection to server has failed');
+      console.log(err);
+    })
   }
 }
 // ************************ //
@@ -299,6 +321,7 @@ var startState = {
     game.load.image('ball', 'assets/images/ballshape.png');
     //> buttons
     game.load.image('startBtn', 'assets/images/start-button.png');
+    game.load.image('rankingBtn', 'assets/images/ranking-button.png');
 
     // SOUNDS //
     game.load.audio('theme', ['assets/sounds/open_theme.ogg', 'assets/sounds/open_theme.mp3'],1,true);
@@ -338,9 +361,15 @@ var startState = {
 
     this.logo = game.add.sprite(this.game.world.centerX + 7, - 140, 'logo');
     this.logo.anchor.setTo(0.5, 0);
-    this.btn = game.make.sprite(-7, 164, 'startBtn')
+
+    this.btn = game.make.sprite(-70, 164, 'startBtn')
     this.btn.anchor.setTo(0.5, 0);
+
+    this.ranking = game.make.sprite(60, 164, 'rankingBtn')
+    this.ranking.anchor.setTo(0.5, 0);
+
     this.logo.addChild(this.btn);
+    this.logo.addChild(this.ranking);
 
     this.tweenA = this.add.tween(this.logo).to({y: 100}, 2000, Phaser.Easing.Bounce.Out, false, 0);
     this.tweenA.start();
@@ -353,6 +382,29 @@ var startState = {
     this.btn.events.onInputDown.add(function(){
       game.state.start('main');
       this.theme.stop();
+    }, this);
+
+    this.ranking.inputEnabled = true;
+    this.ranking.events.onInputDown.add(function(){
+      $('.leader-board').addClass("show")
+      $.get($('body').data('url')+'/api/').success(function(data){
+        console.log(data)
+        var scores = data;
+        var output = '';
+        if(scores.length == 0){
+          output = '<li>Nobody play this yet :(</li>';
+          $('.leader-board ul').html(output);
+          return false;
+        }
+        $.each(scores, function(index, val){
+            output += '<li>'+val.name+'<span>'+val.score+'</span>'+'</li>';
+        });
+        $('.leader-board ul').html(output);
+      }).error(function(err){
+        alert('Conection to server has failed');
+        console.log(err);
+      })
+      //$.post('http://localhost/dk/api/', {name: 'Teste 2', score: 11}).sucess(function(){})
     }, this);
 
 
@@ -414,4 +466,4 @@ var boot = {
 game.state.add('boot', boot);
 game.state.add('main', mainState);
 game.state.add('start', startState);
-game.state.start('boot');
+game.state.start('start');

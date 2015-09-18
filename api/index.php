@@ -8,7 +8,7 @@ if(isset($_POST['name']) && isset($_POST['score'])){
 }
 
 function getConn(){
-  return new PDO('mysql:host=localhost;dbname=dkranking','root','',array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+  return new PDO('mysql:host=barrelblast.mysql.uhserver.com;dbname=barrelblast','barrel','Q!w2e3r4',array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
 }
 function getScore(){
   $stmt = getConn()->query("SELECT * FROM score ORDER BY score DESC LIMIT 50");

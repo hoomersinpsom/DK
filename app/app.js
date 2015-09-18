@@ -189,7 +189,9 @@ var mainState = {
       this.tweenAgain.start();
       var _this = this;
       this.tweenAgain.onComplete.add(function(){
-
+        if(localStorage.barrelScore < this.score){
+          this.updateLeaderBoard();
+        }
       });
 
   },
@@ -285,7 +287,6 @@ var mainState = {
     var savedScore = localStorage.barrelScore || 0;
     if(savedScore < this.score){
       localStorage.barrelScore = this.score;
-      this.updateLeaderBoard();
     }
   },
 
@@ -466,4 +467,4 @@ var boot = {
 game.state.add('boot', boot);
 game.state.add('main', mainState);
 game.state.add('start', startState);
-game.state.start('start');
+game.state.start('boot');

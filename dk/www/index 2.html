@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>DK</title>
+    <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" />
+    <link rel="stylesheet" href="assets/fonts/fonts.css">
+    <link rel="stylesheet" href="app/style.css">
+    <script src="js/jquery.min.js"></script>
+    <script>
+    $(document).on('click', '.leader-board a,.leader-form a', function(e){
+        e.preventDefault()
+        $('.leader-board,.leader-form').removeClass('show');
+    })
+    $(function(){
+        $(".leader-form form").submit(function(e){
+          e.preventDefault()
+          $('.leader-form p').text('Sending ...');
+          $('.leader-form form').hide();
+          $.post($('body').data('url')+'/api/', {name: $("#playername").val(), score: localStorage.barrelScore}).success(function(){
+            $('.leader-form p').text('Leader Board Updated !');
+            $('.leader-form form').hide();
+            setTimeout(function(){
+                $('.leader-form').removeClass("show");
+            },2500)
+          })
+        })
+    })
+    </script>
+</head>
+
+<body data-url="http://www.everydayimchapolin.com/dk"><span></span>
+    <div id="space" style="margin: 0px auto; overflow: hidden; height: 480px; width: 320px;"></div>
+    <div class="leader-board">
+        <a href="#">X</a>
+        <p>Leader Board</p>
+        <ul>
+            <li>Carregando ...</li>
+        </ul>
+    </div>
+    <div class="leader-form">
+        <a href="#">X</a>
+        <p>NEW HIGH SCORE! Submit your name to leader board :]</p>
+        <form class="">
+            <input id="playername" type="text" name="name" maxlength="10" required>
+            <button type="submit" class="send">
+                submit
+            </button>
+        </form>
+    </div>
+    <!-- SCRIPTS -->
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/phaser.min.js"></script>
+    <script type="text/javascript" src="app/app.js"></script>
+</body>
+
+</html>

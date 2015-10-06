@@ -1,0 +1,84 @@
+html {
+    background-color: #000;
+    font-family: 'Press Start 2P', Arial;
+}
+body {
+    margin: 0;
+    color: #fff;
+}
+.leader-board, .leader-form{
+    position: fixed;
+    z-index: 1;
+    width: 280px;
+    top: -480px;
+    left: 50%;
+    margin-left: -140px;
+    box-sizing: border-box;
+    border: 3px solid #000;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.8);
+    transition: top 0.5s cubic-bezier(0.19, 1, 0.22, 1) 0s;
+}
+.leader-board.show, .leader-form.show{
+    top: 20px;
+}
+.leader-board p{
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    margin-top: 3px;
+}
+.leader-board a,.leader-form a{
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    font-size: 18px;
+    padding: 10px;
+    color: #fff;
+    text-decoration: none;
+}
+.leader-board ul li span{
+    float: right;
+}
+.leader-board ul{
+    padding-left: 0;
+    margin-bottom: 0;
+    max-height: 380px;
+    overflow: auto;
+}
+.leader-board ul li{
+    line-height: 1.9em;
+    font-size: 10px;
+    list-style: inside;
+    list-style-type: decimal;
+}
+.leader-form .send{
+    background-color: #FFF;
+    padding: 8px;
+    font-size: 18px;
+    text-transform: uppercase;
+    text-align: center;
+    display: block;
+    margin: 0px auto;
+    width: 100%;
+    border: 0px none;
+    box-sizing: border-box;
+    font-family: "Press Start 2P",Arial;
+}
+.leader-form input[type="text"]{
+    border: 2px solid #fff;
+    font-size: 12px;
+    color: #fff;
+    padding: 10px;
+    display: block;
+    background-color: transparent;
+    width: 100%;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    font-family: "Press Start 2P",Arial;
+}
+#space canvas{
+    transform-origin: left top;
+    -webkit-transform-origin: left top;
+}

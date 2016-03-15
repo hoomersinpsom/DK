@@ -5,7 +5,7 @@ var game = new Phaser.Game(320, 480, Phaser.AUTO, 'space');
 var mainState = {
   // helper functions
   cloneObject: function(obj){
-    return JSON.parse(JSON.stringify(obj))
+    return JSON.parse(JSON.stringify(obj));
   },
   preload: function() {
       // IMAGES //
@@ -30,9 +30,9 @@ var mainState = {
     this.skybg = game.add.tileSprite(0, 0, 320, 480, 'bg');
 
     // Sounds
-    this.blast = game.add.audio('blastBarrel')
-    this.goIn = game.add.audio('inBarrel')
-    this.gameover = game.add.audio('gameover')
+    this.blast = game.add.audio('blastBarrel');
+    this.goIn = game.add.audio('inBarrel');
+    this.gameover = game.add.audio('gameover');
 
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.checkCollision.down = false;
@@ -79,7 +79,7 @@ var mainState = {
     game.input.onDown.add(this.boom, this);
 
     // Score
-    this.score = 0
+    this.score = 0;
     this.labelScore = game.add.text(20, 20, 0, { font: "16px 'Press Start 2P'"});
     this.labelScore.stroke = '#000000';
     this.labelScore.strokeThickness = 4;
@@ -96,7 +96,7 @@ var mainState = {
     this.bestScore.strokeThickness = 2;
     this.bestScore.fill = '#ffffff';
 
-    this.playAgain = game.make.sprite(0, 80, 'playagainBtn')
+    this.playAgain = game.make.sprite(0, 80, 'playagainBtn');
     this.playAgain.anchor.setTo(0.5, 0);
 
     this.gameoverState.addChild(this.bestScore);
@@ -147,22 +147,22 @@ var mainState = {
     if(this.touched){
       this.ball.position.x = this.playerActive.position.x;
       this.ball.position.y = this.playerActive.position.y;
-      this.ball.alpha = 0
+      this.ball.alpha = 0;
     }else{
-      this.ball.alpha = 1
+      this.ball.alpha = 1;
     }
     if(this.rotateActive){
-      this.rotatePlayer(this.lastPlayer)
+      this.rotatePlayer(this.lastPlayer);
     }
-    this.checkLevel(this.lastPlayer)
+    this.checkLevel(this.lastPlayer);
   },
 
   collisionHandler: function(ball, player) {
       this.playerActive = player;
-      this.playerActiveBody = false
+      this.playerActiveBody = false;
       ball.body.allowGravity = false;
-      ball.body.velocity.x = 0
-      ball.body.velocity.y = 0
+      ball.body.velocity.x = 0;
+      ball.body.velocity.y = 0;
       this.blockFire = false;
       this.goIn.play();
       //console.log(ball)
@@ -201,14 +201,14 @@ var mainState = {
   *******************/
   level: function(num){
     var player;
-    this.lastPlayer = null
-    if(num = 1){
+    this.lastPlayer = null;
+    if(num == 1){
       player = this.players.getFirstDead();
       player.reset(50, 100 );
-      player.rotation = game.math.degToRad(-180)
+      player.rotation = game.math.degToRad(-180);
       this.add.tween(player).to({x: game.world.width - 50}, 2000, Phaser.Easing.Cubic.InOut, true, 0, Infinity, true);
-      this.rotateActive = true
-      this.lastPlayer = player
+      this.rotateActive = true;
+      this.lastPlayer = player;
     }
   },
   rotatePlayer: function(player){
@@ -226,10 +226,10 @@ var mainState = {
       _this = this;
       this.players.forEachAlive(function(_player){
         game.add.tween(_player).to({y: _player.position.y + 280}, 300, Phaser.Easing.Linear.InOut, true).onComplete.add(function(data){
-          this.cleanStage()
+          this.cleanStage();
           this.blockFire = false;
-        }, _this)
-      })
+        }, _this);
+      });
       this.score++;
       this.updateHighScore();
       this.labelScore.text = this.score;
@@ -264,7 +264,7 @@ var mainState = {
 
     tweenA.chain(tweenB);
     tweenA.start();
-    this.lastPlayer = nextPlayer
+    this.lastPlayer = nextPlayer;
   },
   cleanStage: function(){
     this.players.forEachAlive(function(_player){
@@ -272,7 +272,7 @@ var mainState = {
         game.tweens.removeFrom(_player);
         _player.kill();
       }
-    })
+    });
   },
   // Altera o tempo do tween para o barril não
   // desacelar no yoyo
@@ -292,24 +292,24 @@ var mainState = {
 
   updateLeaderBoard: function(){
     $.get($('body').data('url')+'/api/').success(function(data){
-      console.log(data)
+      console.log(data);
       var scores = data;
-      var numbers = []
+      var numbers = [];
       $.each(scores, function(index, val){
-        numbers.push(val.score)
+        numbers.push(val.score);
       });
       var high = Math.min.apply(Math,numbers);
       if(localStorage.barrelScore > high || numbers.length < 50){
         $(".leader-form").addClass('show').find("input[name='name']").focus();
-        $('.leader-form p').text('NEW HIGH SCORE! Submit your name to the leader board :]')
+        $('.leader-form p').text('NEW HIGH SCORE! Submit your name to the leader board :]');
         $('.leader-form form').show();
       }
     }).error(function(err){
       alert('Conection to server has failed');
       console.log(err);
-    })
+    });
   }
-}
+};
 // ************************ //
 //       Tela inicial
 // ************************ //
@@ -330,7 +330,7 @@ var startState = {
   create: function(){
 
     this.skybg = game.add.tileSprite(0, 0, 320, 480, 'bg');
-    this.theme = game.add.audio('theme')
+    this.theme = game.add.audio('theme');
     this.theme.loopFull();
     this.theme.volume = 0.5;
     game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -349,7 +349,7 @@ var startState = {
         ball.body.collideWorldBounds = true;
         //ball.outOfBoundsKill = true;
         ball.events.onOutOfBounds.add(this.die, this);
-        ball.body.bounce.x = 0.6
+        ball.body.bounce.x = 0.6;
     }, this);
 
     // High Score
@@ -363,10 +363,10 @@ var startState = {
     this.logo = game.add.sprite(this.game.world.centerX + 7, - 140, 'logo');
     this.logo.anchor.setTo(0.5, 0);
 
-    this.btn = game.make.sprite(-70, 164, 'startBtn')
+    this.btn = game.make.sprite(-70, 164, 'startBtn');
     this.btn.anchor.setTo(0.5, 0);
 
-    this.ranking = game.make.sprite(60, 164, 'rankingBtn')
+    this.ranking = game.make.sprite(60, 164, 'rankingBtn');
     this.ranking.anchor.setTo(0.5, 0);
 
     this.logo.addChild(this.btn);
@@ -376,8 +376,8 @@ var startState = {
     this.tweenA.start();
     var _this = this;
     this.tweenA.onComplete.add(function(){
-      _this.ballsFire(_this.balls)
-    })
+      _this.ballsFire(_this.balls);
+    });
     //game.physics.enable([this.logo], Phaser.Physics.ARCADE);
     this.btn.inputEnabled = true;
     this.btn.events.onInputDown.add(function(){
@@ -387,12 +387,12 @@ var startState = {
 
     this.ranking.inputEnabled = true;
     this.ranking.events.onInputDown.add(function(){
-      $('.leader-board').addClass("show")
+      $('.leader-board').addClass("show");
       $.get($('body').data('url')+'/api/').success(function(data){
-        console.log(data)
+        console.log(data);
         var scores = data;
         var output = '';
-        if(scores.length == 0){
+        if(scores.length === 0){
           output = '<li>Nobody play this yet :(</li>';
           $('.leader-board ul').html(output);
           return false;
@@ -404,7 +404,7 @@ var startState = {
       }).error(function(err){
         alert('Conection to server has failed');
         console.log(err);
-      })
+      });
       //$.post('http://localhost/dk/api/', {name: 'Teste 2', score: 11}).sucess(function(){})
     }, this);
 
@@ -424,8 +424,8 @@ var startState = {
   ballsFire: function(balls){
     var _this = this;
     balls.forEach(function(ball){
-        _this.shootBall(ball)
-    })
+        _this.shootBall(ball);
+    });
   },
   shootBall: function(ball){
     ball.reset(game.world.randomX, game.world.height);
@@ -437,7 +437,7 @@ var startState = {
     ball.body.velocity.x = magnitude * Math.cos(angle);
     ball.body.velocity.y = magnitude * Math.sin(angle);
   }
-}
+};
 
 
 // ************************ //
@@ -459,10 +459,10 @@ var boot = {
       game.time.events.add(Phaser.Timer.SECOND * 3, function(){
         game.state.start('start');
       }, this).autoDestroy = true;
-    })
+    });
 
   }
-}
+};
 // Launcher do jogo
 game.state.add('boot', boot);
 game.state.add('main', mainState);

@@ -1,10 +1,12 @@
 html {
     background-color: #000;
     font-family: 'Press Start 2P', Arial;
+    height: 100%;
 }
 body {
     margin: 0;
     color: #fff;
+    height: 100%;
 }
 .leader-board, .leader-form{
     position: fixed;
@@ -77,6 +79,10 @@ body {
     margin-bottom: 10px;
     box-sizing: border-box;
     font-family: "Press Start 2P",Arial;
+}
+#space{
+    height: 100%;
+    overflow: hidden;
 }
 #space canvas{
     transform-origin: left top;

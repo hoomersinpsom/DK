@@ -12,5 +12,5 @@
             </intent-filter>
         </activity>
     </application>
-    <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="22" />
+    <uses-sdk android:compileSdkVersion="24" android:minSdkVersion="14" android:targetSdkVersion="24" />
 </manifest>

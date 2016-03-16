@@ -44,7 +44,11 @@ var mainState = {
     if(typeof localStorage.barrelScore == "undefined"){
       localStorage.barrelScore = 0;
     }
-    this.toggleMute(this);
+    if (!muted) {
+        _this.game.sound.mute = true;
+    } else {
+        _this.game.sound.mute = false;
+    }
     this.blockFire = false;
     this.playerActiveBody = false;
     this.skybg = game.add.tileSprite(0, 0, docWidth, docHeight, 'bg');
@@ -253,7 +257,7 @@ var mainState = {
       this.blockFire = true;
       _this = this;
       this.players.forEachAlive(function(_player){
-        game.add.tween(_player).to({y: _player.position.y +  game.rnd.between(280, 380)}, 300, Phaser.Easing.Linear.InOut, true).onComplete.add(function(data){
+        game.add.tween(_player).to({y: _player.position.y +  280}, 300, Phaser.Easing.Linear.InOut, true).onComplete.add(function(data){
           this.cleanStage();
           this.blockFire = false;
         }, _this);

@@ -1,5 +1,8 @@
 // cria o objeto com o phaser
-var game = new Phaser.Game(320, 480, Phaser.AUTO, 'space');
+docWidth = document.body.offsetWidth;
+docHeight = document.body.offsetHeight;
+muted = JSON.parse(localStorage.muted || false);
+var game = new Phaser.Game(docWidth, docHeight, Phaser.AUTO, 'space');
 
 // objeto contento todos os metodos do jogo
 var mainState = {
@@ -11,9 +14,10 @@ var mainState = {
       // IMAGES //
       game.load.image('barrel', 'assets/images/barrelshape.png');
       game.load.image('ball', 'assets/images/ballshape.png');
-      game.load.image('bg', 'assets/images/skybg.gif');
+      game.load.image('bg', 'assets/images/skybg'+game.rnd.between(1,3)+'.jpg');
       game.load.image('gameoverimg', 'assets/images/gameover.png');
       game.load.image('playagainBtn', 'assets/images/playagain.png');
+      game.load.image('sound-icon', 'assets/images/mute.png');
 
       // sounds
       game.load.audio('inBarrel', ['assets/sounds/Go_in_barrel.ogg', 'assets/sounds/Go_in_barrel.mp3']);
@@ -21,18 +25,42 @@ var mainState = {
       game.load.audio('gameover', ['assets/sounds/game_over.ogg', 'assets/sounds/game_over.mp3'], 0.5);
 
   },
+  toggleMute: function(_this) {
+    if (!muted) {
+        _this.game.sound.mute = true;
+        muted = true;
+        localStorage.muted = true;
+        if(_this.soundButton)
+          _this.soundButton.alpha = 0.2;
+    } else {
+        muted = false;
+        localStorage.muted = false;
+        _this.game.sound.mute = false;
+        if(_this.soundButton)
+          _this.soundButton.alpha = 1;
+    }
+  },
   create: function(){
     if(typeof localStorage.barrelScore == "undefined"){
       localStorage.barrelScore = 0;
     }
+    this.toggleMute(this);
     this.blockFire = false;
     this.playerActiveBody = false;
-    this.skybg = game.add.tileSprite(0, 0, 320, 480, 'bg');
+    this.skybg = game.add.tileSprite(0, 0, docWidth, docHeight, 'bg');
 
     // Sounds
     this.blast = game.add.audio('blastBarrel');
     this.goIn = game.add.audio('inBarrel');
     this.gameover = game.add.audio('gameover');
+
+    this.soundButton = game.add.sprite(26, 22, 'sound-icon');
+    this.soundButton.reset(docWidth - 36, 20);
+    this.soundButton.anchor.setTo(0, 0);
+    this.soundButton.inputEnabled = true;
+    this.soundButton.events.onInputDown.add(function(){
+      this.toggleMute(this);
+    }, this);
 
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.checkCollision.down = false;
@@ -129,7 +157,7 @@ var mainState = {
 
     this.ball.body.rotation = this.playerActive.rotation + game.math.degToRad(-180);
 
-    var magnitude = 680;
+    var magnitude = 680 + ((docHeight / 100) * 10);
     var angle = this.ball.body.rotation + Math.PI / 2;
     this.blast.play();
     this.ball.body.velocity.x = magnitude * Math.cos(angle);
@@ -185,7 +213,7 @@ var mainState = {
       this.gameover.volume = 0.2;
       this.gameover.play();
       this.bestScore.text = 'HIGH SCORE:'+localStorage.barrelScore;
-      this.tweenAgain = this.add.tween(this.gameoverState).to({y: 180}, 750, Phaser.Easing.Back.Out, false, 0);
+      this.tweenAgain = this.add.tween(this.gameoverState).to({y: (docHeight / 2) - 80}, 750, Phaser.Easing.Back.Out, false, 0);
       this.tweenAgain.start();
       var _this = this;
       this.tweenAgain.onComplete.add(function(){
@@ -225,7 +253,7 @@ var mainState = {
       this.blockFire = true;
       _this = this;
       this.players.forEachAlive(function(_player){
-        game.add.tween(_player).to({y: _player.position.y + 280}, 300, Phaser.Easing.Linear.InOut, true).onComplete.add(function(data){
+        game.add.tween(_player).to({y: _player.position.y +  game.rnd.between(280, 380)}, 300, Phaser.Easing.Linear.InOut, true).onComplete.add(function(data){
           this.cleanStage();
           this.blockFire = false;
         }, _this);
@@ -305,7 +333,7 @@ var mainState = {
         $('.leader-form form').show();
       }
     }).error(function(err){
-      alert('Conection to server has failed');
+
       console.log(err);
     });
   }
@@ -318,7 +346,7 @@ var startState = {
     // IMAGES //
     //> entities
     game.load.image('logo', 'assets/images/logo.png');
-    game.load.image('bg', 'assets/images/skybg.gif');
+    game.load.image('bg', 'assets/images/skybg1.jpg');
     game.load.image('ball', 'assets/images/ballshape.png');
     //> buttons
     game.load.image('startBtn', 'assets/images/start-button.png');
@@ -329,7 +357,7 @@ var startState = {
   },
   create: function(){
 
-    this.skybg = game.add.tileSprite(0, 0, 320, 480, 'bg');
+    this.skybg = game.add.tileSprite(0, 0, docWidth, docHeight, 'bg');
     this.theme = game.add.audio('theme');
     this.theme.loopFull();
     this.theme.volume = 0.5;
@@ -372,7 +400,7 @@ var startState = {
     this.logo.addChild(this.btn);
     //this.logo.addChild(this.ranking);
 
-    this.tweenA = this.add.tween(this.logo).to({y: 100}, 2000, Phaser.Easing.Bounce.Out, false, 0);
+    this.tweenA = this.add.tween(this.logo).to({y: (docHeight / 2) - 150 }, 2000, Phaser.Easing.Bounce.Out, false, 0);
     this.tweenA.start();
     var _this = this;
     this.tweenA.onComplete.add(function(){
@@ -403,7 +431,7 @@ var startState = {
     //     });
     //     $('.leader-board ul').html(output);
     //   }).error(function(err){
-    //     alert('Conection to server has failed');
+    //
     //     console.log(err);
     //   });
     //   //$.post('http://localhost/dk/api/', {name: 'Teste 2', score: 11}).sucess(function(){})
@@ -450,6 +478,8 @@ var boot = {
     game.load.audio('audio', ['assets/sounds/boot.ogg', 'assets/sounds/boot.mp3']);
   },
   create: function(){
+
+
     game.stage.backgroundColor = "#000000";
     this.logo = game.add.sprite(this.game.world.centerX, this.game.world.centerY, 'logo');
     this.logo.anchor.setTo(0.5, 0.5);
@@ -464,12 +494,6 @@ var boot = {
 
   }
 };
-// Launcher do jogo
-function onLoad() {
-  document.addEventListener("deviceready", function(){
-    game.state.add('boot', boot);
-  }, false);
-}
+game.state.add('boot', boot);
 game.state.add('main', mainState);
 game.state.add('start', startState);
-game.state.start('boot');

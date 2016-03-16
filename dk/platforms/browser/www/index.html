@@ -10,9 +10,18 @@
         <link rel="stylesheet" href="assets/fonts/fonts.css">
         <link rel="stylesheet" href="app/style.css">
         <title>Barrel Blast</title>
+        <style>
+          #space canvas{
+            object-fit: cover;
+            -webkit-object-fit: cover;
+            -moz-object-fit: cover;
+            width: 100% !important;
+            height: 100% !important;
+          }
+        </style>
     </head>
-    <body data-url="http://www.everydayimchapolin.com/dk" onload="onLoad()"><span></span>
-        <div id="space" style="margin: 0px auto"></div>
+    <body data-url="http://www.everydayimchapolin.com/dk"><span></span>
+        <div id="space" style="margin: 0px auto; width: 100%;height: 100%;"></div>
         <div class="leader-board">
             <a href="#">X</a>
             <p>Leader Board</p>

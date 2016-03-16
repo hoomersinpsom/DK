@@ -38,38 +38,38 @@ var app = {
     // Update DOM on a Received Event
     receivedEvent: function(id) {
         // Launcher do jogo
-        $(document).on('click', '.leader-board a,.leader-form a', function(e){
-            e.preventDefault()
-            $('.leader-board,.leader-form').removeClass('show');
-        })
-        $(function(){
-            $(".leader-form form").submit(function(e){
-              e.preventDefault()
-              $('.leader-form p').text('Sending ...');
-              $('.leader-form form').hide();
-              $.post($('body').data('url')+'/api/', {name: $("#playername").val(), score: localStorage.barrelScore}).success(function(){
-                $('.leader-form p').text('Leader Board Updated !');
-                $('.leader-form form').hide();
-                setTimeout(function(){
-                    $('.leader-form').removeClass("show");
-                },2500)
-              })
-            })
-        })
-        game.state.add('boot', boot);
-        game.state.add('main', mainState);
-        game.state.add('start', startState);
+        // $(document).on('click', '.leader-board a,.leader-form a', function(e){
+        //     e.preventDefault()
+        //     $('.leader-board,.leader-form').removeClass('show');
+        // })
+        // $(function(){
+        //     $(".leader-form form").submit(function(e){
+        //       e.preventDefault()
+        //       $('.leader-form p').text('Sending ...');
+        //       $('.leader-form form').hide();
+        //       $.post($('body').data('url')+'/api/', {name: $("#playername").val(), score: localStorage.barrelScore}).success(function(){
+        //         $('.leader-form p').text('Leader Board Updated !');
+        //         $('.leader-form form').hide();
+        //         setTimeout(function(){
+        //             $('.leader-form').removeClass("show");
+        //         },2500)
+        //       })
+        //     })
+        // // })
+        // game.state.add('boot', boot);
+        // game.state.add('main', mainState);
+        // game.state.add('start', startState);
         game.state.start('boot');
-        this.setScale();
+        //this.setScale();
 
-        console.log('Start ');
+        console.log('Start');
     },
     setScale: function(){
-        var width = (window.innerWidth > 0) ? window.innerWidth : screen.width;
-        if(width <= 320) return false
-        var scale = width / 320;
-        $('canvas').css('transform', 'scale('+scale+')')
-        $('canvas').css('-webkit-transform', 'scale('+scale+')')
+        // var width = (window.innerWidth > 0) ? window.innerWidth : screen.width;
+        // if(width <= 320) return false
+        // var scale = width / 320;
+        // $('canvas').css('transform', 'scale('+scale+')')
+        // $('canvas').css('-webkit-transform', 'scale('+scale+')')
     }
 };
 

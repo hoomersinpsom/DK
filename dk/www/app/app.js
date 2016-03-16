@@ -45,9 +45,9 @@ var mainState = {
       localStorage.barrelScore = 0;
     }
     if (!muted) {
-        _this.game.sound.mute = true;
+        this.game.sound.mute = true;
     } else {
-        _this.game.sound.mute = false;
+        this.game.sound.mute = false;
     }
     this.blockFire = false;
     this.playerActiveBody = false;
